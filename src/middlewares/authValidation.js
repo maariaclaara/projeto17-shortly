@@ -1,12 +1,7 @@
+import { authToken } from "../repositories/sign.repositories.js";
+
+
 export async function authValidation(req, res, next) {
-
-  function authToken(token) {
-    return db.query(
-      `SELECT * FROM tokens WHERE token=$1`,
-      [token]
-    );
-  }
-
   const { authorization } = req.headers;
   const token = authorization?.replace("Bearer ", "");
   if (!token) return res.sendStatus(401);
