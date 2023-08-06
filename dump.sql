@@ -27,3 +27,12 @@ CREATE TABLE public.tokens (
     token character varying(255) NOT NULL,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE public.urls (
+    id SERIAL PRIMARY KEY,
+    "userId" integer NOT NULL,
+    "shortUrl" text NOT NULL,
+    url text NOT NULL,
+    visit integer DEFAULT 0,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
