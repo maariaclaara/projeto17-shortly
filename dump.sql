@@ -14,7 +14,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 CREATE TABLE public.users (
-    id integer NOT NULL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name text NOT NULL,
     email text NOT NULL,
     password text NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE public.users (
 );
 
 CREATE TABLE public.tokens (
-    id integer NOT NULL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     "userId" integer NOT NULL,
     token character varying(255) NOT NULL,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP
