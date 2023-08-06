@@ -6,8 +6,10 @@ import { signInToken } from "../repositories/sign.repositories.js";
 // LOGIN
 export async function signIn(req, res) {
   const { user } = res.locals;
+
   try {
     const token = uuid();
+
     await signInToken(user, token);
     res.status(200).send({ token });
   } catch (error) {
