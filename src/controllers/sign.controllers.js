@@ -5,10 +5,10 @@ import { signInToken } from "../repositories/sign.repositories.js";
 
 // LOGIN
 export async function signIn(req, res) {
-  const { users } = res.locals;
+  const { user } = res.locals;
   try {
     const token = uuid();
-    await signInToken(users, token);
+    await signInToken(user, token);
     res.status(200).send({ token });
   } catch (error) {
     res.status(500).send(error.message);
@@ -33,6 +33,6 @@ export async function signIn(req, res) {
 
       return res.sendStatus(201);
     } catch (error) {
-      return res.status(500).send(err.message);
+      return res.status(500).send(error.message);
     }
   }
