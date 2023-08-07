@@ -1,5 +1,6 @@
 import { db } from "../database/database.connection.js";
 import { nanoid } from 'nanoid'
+import { updateUrl } from "../repositories/sign.repositories.js";
 
 export async function postUrl (req, res){
         const { url } = req.body
@@ -43,27 +44,27 @@ export async function getUrl (req, res){
 
 export async function getShortUrl (req, res){
     
-    const { shortUrl } = req.body;
+  const { shortUrl } = req.params;
 
-    try {
-      const listShortUrl = await db.query(
-        `SELECT * FROM urls WHERE "shortUrl" = $1`, 
-        [shortUrl]);
-
-        if (listShortUrl.rowCount <= 0) return res.status(404).send("Not Found!");
-        
-      const redirectUrl = listShortUrl.rows[0].url;
-      const countVisit = listShortUrl.rows[0].visit + 1;
-  
-      await db.query(
-        `UPDATE urls SET visit = $1 WHERE "shortUrl"= $2`, 
-        [countVisit, shortUrl]);
-
-      res.redirect(redirectUrl);
-    } catch (error) {
-      res.status(500).send(error.message);
+  try {
+    const { rows, rowCount } = await db.query(
+    `SELECT * FROM urls WHERE "shortUrl"=$1`, 
+    [shortUrl]
+  );
+    console.log(rows)
+    if (!rowCount) {
+      return res.sendStatus(404);
     }
+
+    const redirectUrl = rows[0].url;
+    const countVisit = rows[0].visit + 1;
+
+    await updateUrl(countVisit, shortUrl);
+    res.redirect(redirectUrl);
+  } catch (error) {
+    res.status(500).send(error.message);
   }
+}
 
 
 export async function deleteUrl (req, res){
