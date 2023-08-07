@@ -41,6 +41,32 @@ export async function getUrl (req, res){
 };
 
 
+export async function getShortUrl (req, res){
+    
+    const { shortUrl } = req.params;
+
+    try {
+      const { rows, rowCount } = await db.query(
+        `SELECT * FROM urls WHERE "shortUrl"=$1`, 
+        [shortUrl]);
+      if (!rowCount) {
+        return res.sendStatus(404);
+      }
+
+      const redirectUrl = rows[0].url;
+      const countVisit = rows[0].visit + 1;
+  
+      await db.query(
+        `UPDATE urls visit SET visit=$1 WHERE "shortUrl"=$2`, 
+        [visit, shortUrl]);
+        
+      res.redirect(redirectUrl);
+    } catch (error) {
+      res.status(500).send(error.message);
+    }
+  }
+
+
 export async function deleteUrl (req, res){
 
     const {id} = req.params
