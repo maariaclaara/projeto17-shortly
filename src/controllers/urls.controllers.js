@@ -43,7 +43,7 @@ export async function getUrl (req, res){
 
 export async function getShortUrl (req, res){
     
-    const { shortUrl } = req.params;
+    const { shortUrl } = req.body;
 
     try {
       const listShortUrl = await db.query(
@@ -51,8 +51,7 @@ export async function getShortUrl (req, res){
         [shortUrl]);
 
         if (listShortUrl.rowCount <= 0) return res.status(404).send("Not Found!");
-
-
+        
       const redirectUrl = listShortUrl.rows[0].url;
       const countVisit = listShortUrl.rows[0].visit + 1;
   
@@ -70,7 +69,7 @@ export async function getShortUrl (req, res){
 export async function deleteUrl (req, res){
 
     const {id} = req.params
-    const { userId } = res.locals.session;
+    const { userId } = req.locals.session;
 
     try {
         const urlExists  = await db.query(`SELECT * FROM urls WHERE id = $1`, 
