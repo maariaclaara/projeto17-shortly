@@ -31,9 +31,9 @@ export async function getUrl (req, res){
   try {
     const listUrl = await db.query(`SELECT * FROM urls WHERE id = $1`, 
         [id]);
-    if (listUrl.rowCount < 0) {
-      return res.sendStatus(404);
-    }
+
+    if (listUrl.rowCount <= 0) return res.status(404).send("Not Found!");
+    
     res.status(200).send(listUrl.rows[0]);
   } catch (error) {
     res.status(500).send(error.message);
@@ -49,9 +49,9 @@ export async function getShortUrl (req, res){
       const listShortUrl = await db.query(
         `SELECT * FROM urls WHERE "shortUrl" = $1`, 
         [shortUrl]);
-      if (listShortUrl.rowCount < 0) {
-        return res.sendStatus(404);
-      }
+
+        if (listShortUrl.rowCount <= 0) return res.status(404).send("Not Found!");
+
 
       const redirectUrl = listShortUrl.rows[0].url;
       const countVisit = listShortUrl.rows[0].visit + 1;
@@ -73,17 +73,15 @@ export async function deleteUrl (req, res){
     const { userId } = res.locals.session;
 
     try {
-        const { rowCount: urlExists } = await db.query(`SELECT * FROM urls WHERE id = $1`, 
+        const urlExists  = await db.query(`SELECT * FROM urls WHERE id = $1`, 
         [id]);
-        if (!urlExists) {
-          return res.sendStatus(404);
-        }
+
+        if (urlExists.rowCount <= 0) return res.status(404).send("Not Found!");
        
-        const { rowCount } = await db.query(`SELECT * FROM urls WHERE id = $1, "userId" = $2`, 
+        const userExists = await db.query(`SELECT * FROM urls WHERE id = $1, "userId" = $2`, 
         [id, userId]);
-        if (!rowCount) {
-        return res.sendStatus(401);
-        }
+
+        if (userExists.rowCount <= 0) return res.status(401).send("ID Not Found!");
   
       await db.query(`DELETE FROM urls WHERE id=$1`,
         [id]);
