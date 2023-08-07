@@ -43,7 +43,7 @@ export async function getUrl (req, res){
 
 export async function getShortUrl (req, res){
     
-    const { shortUrl, visit } = req.params;
+    const { shortUrl } = req.body;
 
     try {
       const listShortUrl = await db.query(
@@ -51,19 +51,14 @@ export async function getShortUrl (req, res){
         [shortUrl]);
 
         if (listShortUrl.rowCount <= 0) return res.status(404).send("Not Found!");
-
-        const listVisit = await db.query(
-            `SELECT * FROM urls WHERE visit = $1`, 
-            [visit]);
-
-        const countVisit = listVisit.rows[0].visit + 1;
-
-        await db.query(
-            `UPDATE urls SET visit = $1 WHERE "shortUrl"=$2`, 
-            [countVisit, shortUrl]);
         
-        const redirectUrl = listShortUrl.rows[0].url;
-        
+      const redirectUrl = listShortUrl.rows[0].url;
+      const countVisit = listShortUrl.rows[0].visit + 1;
+  
+      await db.query(
+        `UPDATE urls SET visit = $1 WHERE "shortUrl"= $2`, 
+        [countVisit, shortUrl]);
+
       res.redirect(redirectUrl);
     } catch (error) {
       res.status(500).send(error.message);
@@ -73,30 +68,26 @@ export async function getShortUrl (req, res){
 
 export async function deleteUrl (req, res){
 
-    const { id } = req.params.id;
-    const { shortUrl } = req.params;
+    const { id } = req.params;
+    const { userId } = req.body;
 
-  try {
-    const deleteShortUrl = await db.query(`SELECT * FROM urls WHERE id=$1`, [id]
-    );
+    try {
+        const urlExists  = await db.query(`SELECT * FROM urls WHERE id = $1`, 
+        [id]);
 
-    if (deleteShortUrl.rowCount <= 0) return res.status(404).send("Not Found!");
+        if (urlExists.rowCount <= 0) return res.status(404).send("Not Found!");
+       
+        const userExists = await db.query(`SELECT * FROM urls WHERE "userId" = $2`, 
+        [userId]);
 
-    const listShortUrl = await db.query(
-        `SELECT * FROM urls WHERE "shortUrl" = $1`, 
-        [shortUrl]);
-
-    if (deleteShortUrl.rows[0] != listShortUrl.rows[0]) return res.status(401).send("ID Not Found!")
- 
-    if (deleteShortUrl.rows[0] === listShortUrl.rows[0]){
-        await db.query(`DELETE FROM urls WHERE id=$1`,
-      [id]);
+        if (userExists.rowCount <= 0) return res.status(401).send("ID Not Found!");
+  
+      await db.query(`DELETE FROM urls WHERE id=$1`,
+        [id]);
+      
+      return res.sendStatus(204);
     }
-    
-    return res.sendStatus(204);
-  }
-  catch{
-    return res.status(500).send(err.message)
-  }
-
-}
+    catch{
+      return res.status(500).send(err.message)
+    }  
+  };
