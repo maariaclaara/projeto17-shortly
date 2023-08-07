@@ -29,7 +29,7 @@ export async function getUrl (req, res){
     const { id } = req.params;
 
   try {
-    const listUrl = await db.query(`SELECT * FROM urls WHERE id = $1, "shortUrl" = $2, url = $3`, 
+    const listUrl = await db.query(`SELECT * FROM urls WHERE id = $1`, 
         [id]);
     if (listUrl.rowCount < 0) {
       return res.sendStatus(404);
@@ -47,17 +47,17 @@ export async function getShortUrl (req, res){
 
     try {
       const listShortUrl = await db.query(
-        `SELECT * FROM urls WHERE "shortUrl"=$1`, 
+        `SELECT * FROM urls WHERE "shortUrl" = $1`, 
         [shortUrl]);
       if (listShortUrl.rowCount < 0) {
         return res.sendStatus(404);
       }
 
-      const redirectUrl = rows[0].url;
-      const countVisit = rows[0].visit + 1;
+      const redirectUrl = listShortUrl.rows[0].url;
+      const countVisit = listShortUrl.rows[0].visit + 1;
   
       await db.query(
-        `UPDATE urls visit SET visit=$1 WHERE "shortUrl"=$2`, 
+        `UPDATE urls visit SET visit = $1 WHERE "shortUrl"= $2`, 
         [countVisit, shortUrl]);
 
       res.redirect(redirectUrl);
@@ -73,13 +73,13 @@ export async function deleteUrl (req, res){
     const { userId } = res.locals.session;
 
     try {
-        const { rowCount: urlExists } = await db.query(`SELECT * FROM urls WHERE id = $1, "shortUrl" = $2, url = $3`, 
+        const { rowCount: urlExists } = await db.query(`SELECT * FROM urls WHERE id = $1`, 
         [id]);
         if (!urlExists) {
           return res.sendStatus(404);
         }
        
-        const { rowCount } = await db.query(`SELECT * FROM urls WHERE id = $1, "shortUrl" = $2, url = $3`, 
+        const { rowCount } = await db.query(`SELECT * FROM urls WHERE id = $1, "userId" = $2`, 
         [id, userId]);
         if (!rowCount) {
         return res.sendStatus(401);
