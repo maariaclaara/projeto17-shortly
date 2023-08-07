@@ -29,12 +29,12 @@ export async function getUrl (req, res){
     const { id } = req.params;
 
   try {
-    const { rows, rowCount } = await db.query(`SELECT * FROM urls WHERE id = $1, "shortUrl" = $2, url = $3`, 
+    const listUrl = await db.query(`SELECT * FROM urls WHERE id = $1, "shortUrl" = $2, url = $3`, 
         [id]);
-    if (!rowCount) {
+    if (listUrl.rowCount < 0) {
       return res.sendStatus(404);
     }
-    res.status(200).send(rows[0]);
+    res.status(200).send(listUrl.rows[0]);
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -46,10 +46,10 @@ export async function getShortUrl (req, res){
     const { shortUrl } = req.params;
 
     try {
-      const { rows, rowCount } = await db.query(
+      const listShortUrl = await db.query(
         `SELECT * FROM urls WHERE "shortUrl"=$1`, 
         [shortUrl]);
-      if (!rowCount) {
+      if (listShortUrl.rowCount < 0) {
         return res.sendStatus(404);
       }
 
@@ -58,8 +58,8 @@ export async function getShortUrl (req, res){
   
       await db.query(
         `UPDATE urls visit SET visit=$1 WHERE "shortUrl"=$2`, 
-        [visit, shortUrl]);
-        
+        [countVisit, shortUrl]);
+
       res.redirect(redirectUrl);
     } catch (error) {
       res.status(500).send(error.message);
