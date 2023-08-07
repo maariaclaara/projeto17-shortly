@@ -68,26 +68,29 @@ export async function getShortUrl (req, res){
 
 export async function deleteUrl (req, res){
 
-    const { id } = req.params;
-    const { userId } = req.body;
-
-    try {
-        const urlExists  = await db.query(`SELECT * FROM urls WHERE id = $1`, 
-        [id]);
-
-        if (urlExists.rowCount <= 0) return res.status(404).send("Not Found!");
-       
-        const userExists = await db.query(`SELECT * FROM urls WHERE "userId" = $2`, 
-        [userId]);
-
-        if (userExists.rowCount <= 0) return res.status(401).send("ID Not Found!");
-  
-      await db.query(`DELETE FROM urls WHERE id=$1`,
-        [id]);
-      
-      return res.sendStatus(204);
+  const { id } = req.params;
+  const { userId } = res.locals.session;
+  try {
+    const { rowCount: urlExists } = await db.query(
+      `SELECT id, "shortUrl", url FROM urls WHERE id=$1`, 
+      [id]);
+    if (!urlExists) {
+      return res.sendStatus(404);
     }
-    catch{
-      return res.status(500).send(err.message)
-    }  
-  };
+
+    const { rowCount } = await db.query(
+      `SELECT * FROM urls WHERE "userId"=$1 AND id=$2`, 
+      [userId, id]
+    );;
+    if (!rowCount) {
+      return res.sendStatus(401);
+    }
+
+    await db.query(
+      `DELETE FROM urls WHERE id=$1`, 
+      [id]);
+    res.sendStatus(204);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+}
